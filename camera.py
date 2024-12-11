@@ -2,16 +2,16 @@ import time
 from picamera2 import Picamera2
 import cv2
 import zmq
-import numpy as np
 
-def capture_and_send_frames(picam2, frame_interval=0.5):
+def capture_and_send_frames(picam2):
     """
-    Capture frames at a specific interval, add a timestamp, and send them as NumPy arrays using ZeroMQ.
+    Capture a frame, add a timestamp, and send it to the AI module. 
+    Wait for a response before capturing the next frame.
     """
     # ZeroMQ 설정
     context = zmq.Context()
-    socket = context.socket(zmq.PUSH)
-    socket.bind("tcp://*:5555")  # ZeroMQ로 데이터를 보낼 주소
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:5555")  # AI 모듈로 데이터를 보낼 주소
 
     print("Camera started. Sending frames via ZeroMQ...")
     try:
@@ -32,8 +32,10 @@ def capture_and_send_frames(picam2, frame_interval=0.5):
             socket.send_pyobj({"frame": image, "timestamp": timestamp})
             print(f"Frame sent with timestamp: {timestamp}")
 
-            # 지정된 간격만큼 대기
-            time.sleep(frame_interval)
+            # AI 모듈의 응답 대기
+            response = socket.recv_string()
+            # print(f"AI Module Response: {response}")
+
     except KeyboardInterrupt:
         print("Camera stream stopped.")
     finally:
@@ -53,9 +55,10 @@ if __name__ == "__main__":
     time.sleep(2)  # Let the camera warm up
 
     # Start capturing and sending frames
-    capture_and_send_frames(picam2, frame_interval=0.5)  # 초당 약 2개의 프레임
+    capture_and_send_frames(picam2)
 
     # Stop the camera
     picam2.stop()
+
 
 #pip install pyzmq
