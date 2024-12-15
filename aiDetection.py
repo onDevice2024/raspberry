@@ -19,7 +19,7 @@ def detect_kickboards():
         push_socket.bind("tcp://*:5556")  # 신호 전송용 포트
 
         # YOLOv8 모델 로드
-        model = YOLO('./model/best_n.pt')
+        model = YOLO('./model/best_final.pt')
 
         print("AI Detection Module Started.")
 
@@ -32,10 +32,6 @@ def detect_kickboards():
                 data = socket.recv_pyobj()
                 frame = data["frame"]
                 timestamp = data["timestamp"]
-
-                # 프레임이 NumPy 배열인지 확인
-                if not isinstance(frame, np.ndarray):
-                    raise ValueError("Received frame is not a valid NumPy array")
 
                 # YOLO 모델 추론
                 results = model(frame)
@@ -58,7 +54,7 @@ def detect_kickboards():
                     cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
                 # 조건 충족 확인
-                if class_counts[0] >= 1 and class_counts[2] >= 1:  # No_Helmet >= 1, more_than_two >= 1
+                if class_counts[0] >= 1 or class_counts[2] >= 1:  # No_Helmet >= 1, more_than_two >= 1
                     detection_count += 1
                 else:
                     detection_count = 0  # 조건이 충족되지 않으면 초기화

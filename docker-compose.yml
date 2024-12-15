@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  ai-detection:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./result:/app/result  # 결과 디렉토리 외부 연결
+    ports:
+      - "5555:5555"  # 카메라 모듈과 통신
+      - "5556:5556"  # test.py와 통신
+    environment:
+      - PYTHONUNBUFFERED=1  # 로그 실시간 출력
+    restart: always
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./result:/app/result  # 결과 디렉토리 외부 연결
+    ports:
+      - "5556:5556"  # aiDetection.py와 통신
+    environment:
+      - PYTHONUNBUFFERED=1  # 로그 실시간 출력
+    restart: always

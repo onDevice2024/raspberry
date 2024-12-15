@@ -1,0 +1,4 @@
+pyzmq
+numpy
+opencv-python
+ultralytics
